@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">치연 오버레이</string>
+    <string name="accessibility_desc">머니매니저 앱을 감지해 치연 오버레이를 표시합니다.</string>
+</resources>
