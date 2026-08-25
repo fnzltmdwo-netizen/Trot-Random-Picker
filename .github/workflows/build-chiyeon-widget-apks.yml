@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'chiyeon_widget_build/TRIGGER.txt'
+      - 'ChiyeonComfortWidget*.zip'
       - '.github/workflows/build-chiyeon-widget-apks.yml'
 
 jobs:
@@ -17,16 +17,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Rebuild project ZIP from uploaded parts
+      - name: Find latest Chiyeon project ZIP
+        id: findzip
         shell: bash
         run: |
           set -e
-          mkdir -p build_input
-          cat chiyeon_widget_build/parts/part_*.b64 > build_input/project.zip.b64
-          base64 -d build_input/project.zip.b64 > build_input/ChiyeonComfortWidget_v1.4.1.zip
-          unzip -t build_input/ChiyeonComfortWidget_v1.4.1.zip
+          ZIP_FILE=$(ls -1t ChiyeonComfortWidget*.zip | head -n 1)
+          test -n "$ZIP_FILE"
+          echo "zip=$ZIP_FILE" >> "$GITHUB_OUTPUT"
+          echo "Using: $ZIP_FILE"
+          unzip -t "$ZIP_FILE"
+
+      - name: Extract project
+        shell: bash
+        run: |
+          set -e
+          rm -rf extracted
           mkdir -p extracted
-          unzip -q build_input/ChiyeonComfortWidget_v1.4.1.zip -d extracted
+          unzip -q "${{ steps.findzip.outputs.zip }}" -d extracted
 
       - name: Locate Gradle project
         id: project
@@ -44,6 +52,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
